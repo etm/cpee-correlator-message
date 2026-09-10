@@ -1,19 +1,19 @@
 #!/usr/bin/ruby
 #
-# This file is part of CPEE-CORRELATORS-MESSAGE.
+# This file is part of CPEE-CORRELATOR-MESSAGE.
 #
-# CPEE-CORRELATORS-MESSAGE is free software: you can redistribute it and/or
+# CPEE-CORRELATOR-MESSAGE is free software: you can redistribute it and/or
 # modify it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or (at your
 # option) any later version.
 #
-# CPEE-CORRELATORS-MESSAGE is distributed in the hope that it will be useful,
+# CPEE-CORRELATOR-MESSAGE is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General
 # Public License for more details.
 #
 # You should have received a copy of the GNU General Public License along with
-# CPEE-CORRELATORS-MESSAGE (file LICENSE in the main directory). If not, see
+# CPEE-CORRELATOR-MESSAGE (file LICENSE in the main directory). If not, see
 # <http://www.gnu.org/licenses/>.
 
 require 'json'
@@ -113,11 +113,10 @@ Riddl::Server.new(File.join(__dir__,'/message.xml'), :host => 'localhost', :port
 
   ### set redis_cmd to nil if you want to do global
   ### at least redis_path or redis_url and redis_db have to be set if you do global
-  opts[:redis_path]                 ||= 'redis.sock' # use e.g. /tmp/redis.sock for global stuff. Look it up in your redis config
   opts[:redis_db]                   ||= 0
-  ### optional redis stuff
-  opts[:redis_url]                  ||= nil
-  opts[:redis_cmd]                  ||= 'redis-server --port 0 --unixsocket #redis_path# --unixsocketperm 600 --pidfile #redis_pid# --dir #redis_db_dir# --dbfilename #redis_db_name# --databases 1 --save 900 1 --save 300 10 --save 60 10000 --rdbcompression yes --daemonize yes'
+  opts[:redis_url]                  ||= 'unix://redis.sock' # sadly we have to do this for now
+  opts[:redis_unixsocket]           ||= true
+  opts[:redis_cmd]                  ||= 'redis-server --port #redis_port# --unixsocket #redis_path# --unixsocketperm 600 --pidfile #redis_pid# --dir         #redis_db_dir# --                    dbfilename                  #redis_db_name# --databases 1 --save 900 1 --save 300 10 --save 60 10000 --rdbcompression yes --            daemonize yes --protected-mode no'
   opts[:redis_pid]                  ||= 'redis.pid' # use e.g. /var/run/redis.pid if you do global. Look it up in your redis config
   opts[:redis_db_name]              ||= 'redis.rdb' # use e.g. /var/lib/redis.rdb for global stuff. Look it up in your redis config
 
