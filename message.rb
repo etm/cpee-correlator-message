@@ -65,7 +65,6 @@ class DeleteCondition < Riddl::Implementation
       multi.del("value:ttl:#{uuid}")
       multi.del("value:del:#{uuid}")
       multi.del("value:#{uuid}")
-      multi.del("con:#{uuid}")
       multi.lrem("condition:#{cond}",0,uuid)
     end
 
@@ -124,21 +123,23 @@ Riddl::Server.new(File.join(__dir__,'/message.xml'), :host => 'localhost', :port
 
   parallel do
     EM.add_periodic_timer(opts[:frequency]) do
-      opts[:redis].scan_each(:match => "value:ttl:*") do |key|
+      redis = opts[:redis]
+      redis.scan_each(:match => "value:ttl:*") do |key|
+        next if redis.get(key).to_i > Time.now.to_i
         uuid = key[10..-1]
 
         cond = redis.get("value:condition:#{uuid}")
-        cb   = redis.get("value:#{uuid}")
+        next if cond.nil? || redis.lrem("condition:#{cond}",0,uuid) == 0
+        cb = redis.get("value:#{uuid}")
 
         redis.multi do |multi|
           multi.del("value:condition:#{uuid}")
           multi.del("value:ttl:#{uuid}")
+          multi.del("value:del:#{uuid}")
           multi.del("value:#{uuid}")
-          multi.del("con:#{uuid}")
-          multi.lrem("condition:#{cond}",0,uuid)
         end
 
-        SendCallback::send cb, '', 'expired'
+        SendCallback::send cb, '', 'expired' unless cb.nil?
       end
     end
   end
